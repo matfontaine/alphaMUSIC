@@ -137,3 +137,5 @@ torch_checkpoints/
 *.pdf
 *.pkl
 *.ckpt
+
+venv
