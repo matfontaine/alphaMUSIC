@@ -120,7 +120,10 @@ if __name__ == "__main__":
     room.add_microphone_array(R_3M)
     
     # add sources
-    source_pos = np.array([[2.3, 3.3, 1.8], [3.4, 4.3, 1.7], [5.2, 3.3, 1.7]])
+    # source_pos = np.array([[2.3, 3.3, 1.8], [3.4, 4.3, 1.7], [5.2, 3.3, 1.7]])
+    source_pos = np.array([[3.2, 3.5, 1.5], 
+                           [4.2, 2.5, 1.5],
+                           [4.2, 3.5, 1.5]])
     # if args.model == 'far':
     # elif args.model == 'near':
     #     source_pos = np.array([[2.3, 3.3, 1.8], [4, 3.3, 1.8], [1.6, 1.2, 1.8]])
@@ -134,23 +137,19 @@ if __name__ == "__main__":
         
         # relative position cartesian
         xyz = source_pos[n,:] - mic_center.squeeze()
-        razel = cart2sph(xyz[:,None])
+        azimuth = np.squeeze(cart2sph(xyz[:,None]))[1]
         
-        if args.model == 'far':
-            vec1 = np.array([1, 0])
-            vec2 = source_pos[n,0:2] - mic_center[0:2, 0]
-            vec2 /= np.linalg.norm(vec2, keepdims=True)
-            pos_N[n] = np.arccos(vec1[0]*vec2[0]+vec1[1]*vec2[1])
+        # if args.model == 'far':
+        #     vec1 = np.array([1, 0])
+        #     vec2 = source_pos[n,0:2] - mic_center[0:2, 0]
+        #     vec2 /= np.linalg.norm(vec2, keepdims=True)
+        #     pos_N[n] = np.arccos(vec1[0]*vec2[0]+vec1[1]*vec2[1])
 
-        elif args.model == 'near':
-            source_pos[n] += mic_center[:, 0]
-            pos_N2[n] = source_pos[n, :2]
+        # elif args.model == 'near':
+        #     source_pos[n] += mic_center[:, 0]
+        #     pos_N2[n] = source_pos[n, :2]
 
-        print(razel[0], pos_N[n])
-
-    1/0
-    print(true_positions)
-    1/0
+        pos_N[n] = azimuth
 
     room.plot()
     plt.savefig(results_dir / Path("room_scene.png"))
@@ -180,6 +179,9 @@ if __name__ == "__main__":
         
         localizer.localize(save_parameter=True, save_pos=True,
                         save_RMS=True, save_corr=False, SAVE_PATH=results_dir)
+        azimuth_recon = np.rad2deg(localizer.est_pos_N)
+        print(azimuth_recon)
+        print(pos_N)
 
     elif args.algo == "MUSIC":
 
@@ -188,7 +190,7 @@ if __name__ == "__main__":
         # this call here perform localization on the frames in X
         doa.locate_sources(obs_FTM.transpose([2,0,1]), freq_range=[args.minF, args.maxF])
 
-        print(doa.azimuth_recon)
+        print(np.rad2deg(doa.azimuth_recon))
         print(pos_N)
 
 
