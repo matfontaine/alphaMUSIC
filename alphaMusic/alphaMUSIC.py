@@ -1,5 +1,5 @@
 import numpy as np
-from utility import farfield_sphere, farfield_plane
+from alphaMusic.utility import farfield_sphere, farfield_plane
 from skimage.feature.peak import peak_local_max
 
 import scipy.signal as si
@@ -9,7 +9,7 @@ import glob as glob
 import os as os
 import math
 import json
-from detect_peak import detect_peaks
+from alphaMusic.detect_peak import detect_peaks
 class AlphaMUSIC():
     def __init__(self, n_source=2,
                  seed=1, alpha=1.8, ac_model='far', x_acc=5, y_acc=10,

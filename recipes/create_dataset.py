@@ -13,7 +13,7 @@ import scipy as sc
 import uuid
 
 import pyroomacoustics as pra
-from alphaMUSIC import AlphaMUSIC
+from alphaMusic.alphaMUSIC import AlphaMUSIC
 def make_filename_suffix(args):
     filename_suffix = "algo-%s_model-%s_abscoeff-%1.2f" % (
         args.algo, args.model, args.abs_coeff)

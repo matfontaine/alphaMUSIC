@@ -12,7 +12,7 @@ import pickle as pic
 import scipy as sc
 
 import pyroomacoustics as pra
-from alphaMUSIC import AlphaMUSIC
+from alphaMusic.alphaMUSIC import AlphaMUSIC
 
 if __name__ == "__main__":
     import argparse
