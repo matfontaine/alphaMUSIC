@@ -1,5 +1,9 @@
-from cmath import polar
 import numpy as np
+from collections import namedtuple
+
+
+DOASetup = namedtuple('DOASetup', 'distance, azimuth, elevation, deg')
+
 
 def cart2sph(xyz, deg=True):
     xy = xyz[0, :]**2 + xyz[1, :]**2

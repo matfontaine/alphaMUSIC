@@ -54,7 +54,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-
     # set up folders
     data_dir = Path(args.data_dir)
     results_dir = Path(args.results_dir, 'RT60={}/alpha={}/'.format(args.RT60, args.alpha))
@@ -121,8 +120,8 @@ if __name__ == "__main__":
     
     # add sources
     # source_pos = np.array([[2.3, 3.3, 1.8], [3.4, 4.3, 1.7], [5.2, 3.3, 1.7]])
-    source_pos = np.array([[3.2, 3.5, 1.5], 
-                           [4.2, 2.5, 1.5],
+    source_pos = np.array([[3.2, 2.5, 1.5], 
+                           [4.2, 1.5, 1.5],
                            [4.2, 3.5, 1.5]])
     # if args.model == 'far':
     # elif args.model == 'near':
@@ -184,6 +183,8 @@ if __name__ == "__main__":
         print(pos_N)
 
     elif args.algo == "MUSIC":
+
+        print('Check the reference of azimuth and elevation')
 
         doa = pra.doa.algorithms["MUSIC"](R_3M, fs, args.n_fft, c=343, num_src=3)
 
