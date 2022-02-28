@@ -66,6 +66,7 @@ class aMUSIC(DOA):
         c=343.0,
         num_src=1,
         alpha=2,
+        p=1,
         mode="far",
         r=None,
         azimuth=None,
@@ -100,6 +101,7 @@ class aMUSIC(DOA):
         else:
             raise ValueError(f'Error in choosing alpha, got {alpha}')
 
+        self.p = p
         self.Pssl = None
         self.frequency_normalization = frequency_normalization
 
@@ -141,8 +143,6 @@ class aMUSIC(DOA):
         self.F = X_MFT.shape[1]
         self.T = X_MFT.shape[2]
 
-        self.p = 1.5
-        # self.p2 = 1.5
         R_FMM = np.zeros((self.F,self.M,self.M),dtype=np.complex64)
         gamma = 0.5772156 # Euler constant
         Cste = -gamma * (self.alpha **(-1) - 1.) - np.log(2.0)
@@ -151,17 +151,13 @@ class aMUSIC(DOA):
         cov_MF = np.exp((mean_MF+Cste) * self.alpha ** (-1))
         diag_MF = 2. * (cov_MF) ** (2./self.alpha)
         for m in range(self.M):
-            R_FMM[:, m, m] = diag_MF[m]
+            R_FMM[:, m, m] = diag_MF[m] 
         for m in range(self.M):
             for l in range(m):
                 if l != m:
-                    coeff_cov_F = (X_MFT[m] * X_MFT[l].conj() *
-                                  (np.abs(X_MFT[l]) ** (self.p - 2.))).sum(axis=-1)
+                    coeff_cov_F = (X_MFT[m,...] * X_MFT[l,...].conj() * (np.abs(X_MFT[l,...]) ** (self.p - 2.))).sum(axis=-1)
                     coeff_cov_F /= (np.abs(X_MFT[l]) ** (self.p) + 1e-10).sum(axis=-1)
-
-                    R_FMM[:, m, l] = coeff_cov_F * cov_MF[l] *\
-                                    2 ** (self.alpha/2.) *\
-                                    R_FMM[:, l, l] ** (-(self.alpha-2.)/2.)
+                    R_FMM[:, m, l] = coeff_cov_F * cov_MF[l] * 2 ** (self.alpha/2.) * R_FMM[:, l, l] ** (-(self.alpha-2.)/2.)
                     R_FMM[:, l, m] = np.conj(R_FMM[:, m, l])
         return R_FMM
 
@@ -202,9 +198,9 @@ class aMUSIC(DOA):
             # print("Estimated alpha={}".format(self.alpha))
             R_FMM = self.compute_Ralpha_cov(X_MFT)
 
-
+        # THIS IS MUSIC
         # # compute steered response
-        self.Pssl = np.zeros((self.num_freq, self.grid.n_points))
+        # self.Pssl = np.zeros((self.num_freq, self.grid.n_points))
         # C_hat = self._compute_correlation_matricesvec(X)
         # subspace decomposition
         Es, En, ws, wn = self._subspace_decomposition(R_FMM[None, ...])
@@ -268,7 +264,7 @@ class aMUSIC(DOA):
         denom = np.matmul(
             np.conjugate(mod_vec[..., None, :]), np.matmul(cross, mod_vec[..., None])
         )
-        return 1.0 / abs(denom[..., 0, 0])
+        return 1.0 / np.abs(denom[..., 0, 0])
 
     def _compute_spatial_spectrum(self, cross, k):
 
@@ -278,7 +274,7 @@ class aMUSIC(DOA):
             Dc = np.array(self.mode_vec[k, :, n], ndmin=2).T
             Dc_H = np.conjugate(np.array(self.mode_vec[k, :, n], ndmin=2))
             denom = np.dot(np.dot(Dc_H, cross), Dc)
-            P[n] = 1 / abs(denom)
+            P[n] = 1 / np.abs(denom)
 
         return P
 
@@ -479,8 +475,7 @@ class AlphaMUSIC():
     def compute_Ralpha_cov(self):
         """Estimate the elliptical covariance matrix of the K x N data S
         """
-        self.p = 1.5
-        # self.p2 = 1.5
+
         self.R_FMM = self.xp.zeros((self.F,self.M,self.M),dtype=self.xp.complex64)
         gamma = 0.5772156 # Euler constant
         Cste = -gamma * (self.alpha **(-1) - 1.) - self.xp.log(2.0)

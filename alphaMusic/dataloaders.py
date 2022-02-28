@@ -1,3 +1,4 @@
+from tabnanny import verbose
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -11,7 +12,26 @@ import alphaMusic.utils.mat_utils as mat
 import alphaMusic.utils.geo_utils as geo
 import alphaMusic.utils.acu_utils as acu
 
+from pyroomacoustics.datasets.locata import LOCATA
+
 import matplotlib.pyplot as plt
+
+class LocataDataset:
+    def __init__(self, data_dir, verbose, tasks, arrays):
+        self.db = LOCATA(basedir=data_dir, verbose=verbose, tasks=tasks, arrays=arrays)
+        size = len(self.db.samples)
+        
+    def iterdata(self):
+        dataset = []
+        for sample in self.db.samples:
+            mix = sample.data
+            data = []
+            for ts in tqdm(range(len(sample.ts))):
+                array = sample.get_array(ts)
+                doa = sample.get_doa(ts)
+                data.append((ts, array, doa))
+            dataset.append((mix, data))
+        return dataset
 
 class LibriSpeechDataset:
 
@@ -61,12 +81,12 @@ class LibriSpeechDataset:
         self.data_dir = Path(data_dir)
         self.results_dir = Path(results_dir)
         
-        self.azimuths = [0, 30, -30, 50, -50]
+        self.azimuths = [0, 30, -35, 55, -50]
         self.fs = fs
 
     def built_dataset(self, n_samples,
                             room_dim,
-                            RT60_range, SNR_range, DRR_range,
+                            RT60s, SNRs, DRRs,
                             array_setup, array_center, 
                             n_srcs,
                             path_to_noise,
@@ -81,15 +101,15 @@ class LibriSpeechDataset:
             &   (self.df['duration'] < self.tlim[1])].reset_index(drop=True)
 
         # random RT60 or SNR or DRR
-        RT60s = mat.uniform_in_range(RT60_range, n_samples)
-        SNRs = mat.uniform_in_range(SNR_range, n_samples)
-        DRRs = mat.uniform_in_range(DRR_range, n_samples)
-        
+        RT60s = np.random.choice(RT60s, n_samples, replace=True)
+        SNRs = np.random.choice(SNRs, n_samples, replace=True)
+        DRRs = np.random.choice(DRRs, n_samples, replace=True)
+
         # random DoA (az)
-        DOAs = mat.uniform_in_range([31,180-31], n_samples)
+        DOAs = np.arange(0, 180)[:n_samples]
 
         # random sources index
-        srcs_idx = np.random.default_rng().choice(np.arange(0,len(df)), [n_samples, n_srcs], replace=False)
+        srcs_idx = np.random.choice(np.arange(0,len(df)), [n_samples, n_srcs], replace=True)
 
         dataset = []
         for n in tqdm(range(n_samples)):
@@ -104,11 +124,30 @@ class LibriSpeechDataset:
 
                 path_to_signal = df.at[idx, 'path']
                 signal, fs = sf.read(Path(path_to_signal))
-                
+
+                # first source
+                if j == 0: 
+                    doa = DOAs[n]
+
+                else:
+                    
+                    doa_axis = np.arange(0,180)
+
+                    possible_doas_for_j2 = []
+                    for j2 in range(j):
+                        doa_j2 = curr_DOAs[j2].azimuth
+                        doa_j2_axis = np.arange(doa_j2-15, doa_j2+15)
+                        possible_doas_for_j2.append(doa_j2_axis)
+                    
+                    possible_doas_for_j2 = np.concatenate(possible_doas_for_j2)
+                    possible_doas_for_j2 = np.setdiff1d(doa_axis, possible_doas_for_j2)
+                    
+                    doa = np.random.choice(possible_doas_for_j2)
+
                 curr_signals.append(signal)
                 curr_DOAs.append(geo.DOASetup(
                                     distance=DRRs[n],
-                                    azimuth=np.mod(self.azimuths[j] + DOAs[n], 360),
+                                    azimuth=doa,
                                     elevation=0,
                                     deg=True))
                 assert fs == self.fs
@@ -119,16 +158,24 @@ class LibriSpeechDataset:
                 curr_DOAs, curr_signals, self.fs, path_to_noise
             )
 
+
             mix = scene.simulate()
             if do_plot: scene.plot()
+            # return dataset
 
             doas = [curr_DOAs[j].azimuth for j in range(n_srcs)]
+
+            if len(doas) > 1:
+                assert not np.min(doas) < 0
+                assert not np.min(np.diff(np.sort(doas))) < 15
+                assert not np.max(doas) > 180
 
             acu_params = {
                 'RT60': scene.acoustic_params['RT60'],
                 'SNR':  scene.acoustic_params['SNR'],
                 'DRR':  scene.acoustic_params['DRR'],
                 'DER':  scene.acoustic_params['DER'],
+                'DST':  DRRs[n],
             }
             dataset.append((mix, doas, acu_params))
         print('done')

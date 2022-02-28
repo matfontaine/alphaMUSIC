@@ -231,7 +231,7 @@ class AcousticScene:
 			assert mixtures.shape[0] == I
 			assert noise.shape[0] == I
 			
-			L = mixtures.shape[1]
+			L = min(mixtures.shape[1], noise.shape[1])
 			mixtures = mixtures[:,:L] + noise[:,:L]
 		
 		# compute DRR

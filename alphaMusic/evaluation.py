@@ -1,6 +1,20 @@
 import numpy as np
 
 
+def best_match_sorted(doas_est, doas_ref):
+    # sort the values
+    doas_est = np.sort(doas_est)
+    doas_ref = np.sort(doas_ref)
+
+    best_match = []
+    for ref in doas_ref:
+        idx = np.argmin(np.abs(doas_est - ref))
+        est = doas_est[idx]
+        doas_est = np.delete(doas_est, idx)
+        best_match.append(est)
+
+    return best_match
+
 
 def compute_ssl_metrics(doas_est, doas_ref):
 
