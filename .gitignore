@@ -128,7 +128,6 @@ lightning_logs/
 MNIST
 .DS_Store
 
-figures/
 pytorch_wavelets/
 torch_checkpoints/
 
