@@ -173,7 +173,7 @@ class LibriSpeechDataset:
             acu_params = {
                 'RT60': scene.acoustic_params['RT60'],
                 'SNR':  scene.acoustic_params['SNR'],
-                'DRR':  scene.acoustic_params['DRR'],
+                'DRR':  DRRs[n],
                 'DER':  scene.acoustic_params['DER'],
                 'DST':  DRRs[n],
             }

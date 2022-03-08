@@ -86,19 +86,19 @@ def main(n_samples,RT60_range, SNR_range, DRR_range, n_srcs, n_mics, noise_type)
     }
     algorithms = [
         ('MUSIC', doa.music.MUSIC(**kwargs)),
-        # ('aMUSIC', aMUSIC(**kwargs,alpha=3, p=1., frequency_normalization=False)),
-        # ('aMUSIC', aMUSIC(**kwargs,alpha=1.5, p=1., frequency_normalization=False)),
-        # ('aMUSIC', aMUSIC(**kwargs,alpha=1.8, p=1., frequency_normalization=False)),
+        ('aMUSIC', aMUSIC(**kwargs,alpha=3, p=1., frequency_normalization=False)),
+        ('aMUSIC', aMUSIC(**kwargs,alpha=1.5, p=1., frequency_normalization=False)),
+        ('aMUSIC', aMUSIC(**kwargs,alpha=1.8, p=1., frequency_normalization=False)),
         ('aMUSIC', aMUSIC(**kwargs,alpha=3, p=1.5, frequency_normalization=False)),
-        # ('aMUSIC', aMUSIC(**kwargs,alpha=1.5, p=1.5, frequency_normalization=False)),
-        # ('aMUSIC', aMUSIC(**kwargs,alpha=1.8, p=1.5, frequency_normalization=False)),
+        ('aMUSIC', aMUSIC(**kwargs,alpha=1.5, p=1.5, frequency_normalization=False)),
+        ('aMUSIC', aMUSIC(**kwargs,alpha=1.8, p=1.5, frequency_normalization=False)),
         ('NormMUSIC', doa.normmusic.NormMUSIC(**kwargs)),
-        # ('aNormMUSIC', aMUSIC(**kwargs,alpha=3,p=1., frequency_normalization=True)),
-        # ('aNormMUSIC', aMUSIC(**kwargs,alpha=1.5,p=1., frequency_normalization=True)),
-        # ('aNormMUSIC', aMUSIC(**kwargs,alpha=1.8,p=1., frequency_normalization=True)),
+        ('aNormMUSIC', aMUSIC(**kwargs,alpha=3,p=1., frequency_normalization=True)),
+        ('aNormMUSIC', aMUSIC(**kwargs,alpha=1.5,p=1., frequency_normalization=True)),
+        ('aNormMUSIC', aMUSIC(**kwargs,alpha=1.8,p=1., frequency_normalization=True)),
         ('aNormMUSIC', aMUSIC(**kwargs,alpha=3,p=1.5, frequency_normalization=True)),
-        # ('aNormMUSIC', aMUSIC(**kwargs,alpha=1.5,p=1.5, frequency_normalization=True)),
-        # ('aNormMUSIC', aMUSIC(**kwargs,alpha=1.8,p=1.5, frequency_normalization=True)),
+        ('aNormMUSIC', aMUSIC(**kwargs,alpha=1.5,p=1.5, frequency_normalization=True)),
+        ('aNormMUSIC', aMUSIC(**kwargs,alpha=1.8,p=1.5, frequency_normalization=True)),
         ('SRP_PHAT', doa.srp.SRP(**kwargs))
     ]
 
@@ -136,7 +136,10 @@ def main(n_samples,RT60_range, SNR_range, DRR_range, n_srcs, n_mics, noise_type)
                 predictions['time'].append(time_elapsed)
                 predictions['SNR'].append(acu_params['SNR'])
                 predictions['RT60'].append(acu_params['RT60'])
-                predictions['DRR'].append(acu_params['DRR'])
+                if drr_name == 'sweep':
+                    predictions['DRR'].append(acu_params['DST'])
+                else:
+                    predictions['DRR'].append(acu_params['DRR'])
 
         df_predictions = pd.DataFrame.from_dict(predictions)
         
@@ -144,12 +147,12 @@ def main(n_samples,RT60_range, SNR_range, DRR_range, n_srcs, n_mics, noise_type)
 
 if __name__ == "__main__":
 
-    n_samples = 180
+    n_samples = 30
     RT60_range = [0.5] # [0.25, 0.5, 0.75, 1., 1.25, 1.5]
-    SNR_range = [10]    # [-30, -20, -10, 0, 10, 20]
-    DRR_range = [1., 1.5, 2., 2.5, 2.75] # [1]
+    SNR_range = [10] # [-30, -20, -10, 0, 10, 20]
+    DRR_range = [1] #[1., 1.5, 2., 2.5, 2.75]
     n_srcs = [1, 2, 3, 4]
-    n_mics = [4]
+    n_mics = [2, 4, 6]
     noise_type = 'cafet'
     
     for J in n_srcs:

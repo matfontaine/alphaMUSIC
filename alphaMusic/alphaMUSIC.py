@@ -195,6 +195,7 @@ class aMUSIC(DOA):
 
         elif self.alpha_case == 'Estimated':
             self.alpha = self.compute_alpha(X_MFT)
+            self.p = np.abs(self.alpha - 1) / 2 + 1
             # print("Estimated alpha={}".format(self.alpha))
             R_FMM = self.compute_Ralpha_cov(X_MFT)
 
